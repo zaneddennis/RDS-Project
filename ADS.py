@@ -1,7 +1,8 @@
 import pandas as pd
 import warnings
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, PolynomialFeatures
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 
 warnings.filterwarnings("ignore")
 
@@ -24,8 +25,26 @@ def preprocess(data):
 # takes a DataFrame containing the training data
 # returns a fitted sklearn LinearRegression object
 def simpleLR(data):
-    x = data.drop(["charges"], axis=1)
+    X = data.drop(["charges"], axis=1)
     y = data.charges
 
-    lr = LinearRegression().fit(x, y)
+    lr = LinearRegression().fit(X, y)
     return lr
+
+def polynomialLR(data):
+    X = data.drop(["charges", "region"], axis=1)
+    y = data.charges
+
+    quad = PolynomialFeatures(degree=2)
+    X_quad = quad.fit_transform(X)
+
+    plr = LinearRegression().fit(X_quad, y)
+    return plr
+
+def forest(data):
+    X = data.drop(["charges"], axis=1)
+    y = data.charges
+
+    forest = RandomForestRegressor(n_estimators=100, criterion="mse", random_state=1, n_jobs=1)
+    forest.fit(X, y)
+    return forest
