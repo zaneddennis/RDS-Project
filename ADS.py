@@ -6,10 +6,12 @@ from sklearn.ensemble import RandomForestRegressor
 
 warnings.filterwarnings("ignore")
 
+# See Accuracy_Analysis.ipynb for examples how to use all these!
+
 
 # takes a DataFrame containing all of the data
-# returns the DataFrame transformed using the ADS' process
-def preprocess(data):
+# returns the DataFrame transformed using the ADS' label encoding process
+def encode(data):
     le = LabelEncoder()
     le.fit(data.sex.drop_duplicates())
     data.sex = le.transform(data.sex)
@@ -22,28 +24,44 @@ def preprocess(data):
 
     return data
 
-# takes a DataFrame containing the training data
-# returns a fitted sklearn LinearRegression object
-def simpleLR(data):
+
+# takes a DataFrame containing either training or test data
+# returns the DataFrame's features and labels prepared to input directly into a fit()/predict()/score()/etc. function
+def prepareLR(data):
     X = data.drop(["charges"], axis=1)
     y = data.charges
+    return X, y
+
+# takes a DataFrame containing the ENCODED training data
+# returns a fitted sklearn LinearRegression object
+def simpleLR(data):
+    X, y = prepareLR(data)
 
     lr = LinearRegression().fit(X, y)
     return lr
 
-def polynomialLR(data):
+
+def preparePoly(data):
     X = data.drop(["charges", "region"], axis=1)
     y = data.charges
-
     quad = PolynomialFeatures(degree=2)
-    X_quad = quad.fit_transform(X)
+    X = quad.fit_transform(X)
+    return X, y
 
-    plr = LinearRegression().fit(X_quad, y)
+def polynomialLR(data):
+    X, y = preparePoly(data)
+
+    plr = LinearRegression().fit(X, y)
     return plr
 
-def forest(data):
+
+def prepareForest(data):
     X = data.drop(["charges"], axis=1)
     y = data.charges
+    return X, y
+
+def forest(data):
+    X, y = prepareForest(data)
 
     forest = RandomForestRegressor(n_estimators=100, criterion="mse", random_state=1, n_jobs=1)
     forest.fit(X, y)
